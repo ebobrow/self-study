@@ -1,0 +1,6 @@
+[submodule "CPDT"]
+	path = CPDT
+	url = git@github.com:ebobrow/CPDT.git
+[submodule "compilerbook"]
+	path = compilerbook
+	url = git@github.com:ebobrow/compilerbook.git
