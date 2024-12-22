@@ -1,5 +1,38 @@
-\documentclass[12pt]{article}
-\usepackage{amssymb, amsmath, amsfonts, amsthm, graphicx, stmaryrd}
+\documentclass{article}
+\usepackage{amssymb, amsmath, amsfonts, amsthm, graphicx, stmaryrd, listings, xcolor}
+
+\definecolor{darkblue}{rgb}{0,0,0.5}
+\definecolor{lightgray}{gray}{0.75}
+
+\lstset{basicstyle=\ttfamily\small, numbers=left,
+  xleftmargin=3em,extendedchars=true,
+  numberstyle=\tiny\color{lightgray}, keywordstyle=\color{darkblue}, morekeywords={and,
+    as, begin, check, do, done, downto, else, end, effect, external, finally,
+    for, fun, function, handle, handler, if, in, match, let, new, of, operation,
+    perform, rec, val, while, to, type, then, with},
+literate=%
+    {→}{{$\rightarrow$}}1%
+    {×}{{$\times$}}1%
+    {←}{{$\leftarrow$}}1%
+    {↦}{{$\mapsto$}}1%
+    {↝}{{$\leadsto$}}1%
+    {…}{{$\ldots$}}1%
+    {⇒}{{$\Rightarrow$}}1%
+    {∈}{{$\in$}}1%
+    {≡}{{$\equiv$}}1%
+    {λ}{{$\lambda$}}1%
+    {⊢}{{$\vdash$}}1%
+    {κ}{{$\kappa$}}1%
+    {Σ}{{$\Sigma$}}1%
+    {Δ}{{$\Delta$}}1%
+    {Γ}{{$\Gamma$}}1%
+    {Θ}{{$\Theta$}}1%
+    {₀}{{${}_0$}}1%
+    {₁}{{${}_1$}}1%
+    {₂}{{${}_2$}}1%
+    {ᵢ}{{${}_\mathtt{i}$}}1%
+    {ⱼ}{{${}_\mathtt{j}$}}1%
+}
 
 {\theoremstyle{definition}
 \newtheorem{problem}{Problem}[section]}
@@ -104,5 +137,68 @@
                 (x,m) & \text{if }m=n.
             \end{cases}
         \]
+    \end{proof}
+
+    \section{The language stuff}
+    \begin{problem}[Products]
+        Add simple products \lstinline{A × B} to the core language:
+        %
+        \begin{enumerate}
+            \item Extend the syntax of values with pairs.
+            \item Extend the syntax of computations with an elimination of pairs, e.g., \lstinline{do (x,y) ← c₁ in c₂}.
+            \item Extend the operational semantics.
+            \item Extend the typing rules.
+        \end{enumerate}
+    \end{problem}
+    \begin{proof}[Solution]
+        We extend the syntax of values as
+        \begin{lstlisting}
+v ::= ...
+    | (v₁, v₂)      (pair)
+        \end{lstlisting}
+        and the syntax of computations as
+        \begin{lstlisting}
+c ::= ...
+    | do (x,y) ← c₁ in c₂   (pair elim)
+        \end{lstlisting}
+        Our operational semantics are extended with the following rule:
+        \begin{lstlisting}
+
+____________________________________________________
+do (x, y) ← return (v₁, v₂) in c₂  ↦  c₂[v₁/x, v₂/y]
+        \end{lstlisting}
+        The new definition for value type is:
+        \begin{lstlisting}
+        A, B := bool | A → C | C ⇒ D | A × B
+        \end{lstlisting}
+        We add one new rule for value typing:
+        \begin{lstlisting}[mathescape=true]
+$\Gamma\vdash$ x : A     $\Gamma\vdash$ y : B
+--------------------
+ $\Gamma\vdash$ (x, y) : A $\times$ B
+        \end{lstlisting}
+        and one new rule for computation typing:
+        \begin{lstlisting}[mathescape=true]
+Γ ⊢ c₁ : ($A_1$ $\times$ $A_2$)!Δ    Γ, x:$A_1$, y:$A_2$ ⊢ c₂ : B!Δ
+_____________________________________________
+      Γ ⊢ (do (x, y) ← c₁ in c₂) : B!Δ
+        \end{lstlisting}
+    \end{proof}
+
+    \begin{problem}[Non-terminating program]
+        Define a program which prints infinitely many booleans. You may assume that the
+        \lstinline{print : bool → unit} operation is handled appropriately by the runtime
+        environment. For extra credit, make it "funny".
+    \end{problem}
+    \begin{proof}[Solution]
+        I think this works?
+        \begin{lstlisting}[mathescape=true]
+fix loop .
+    with handler {
+        return x $\mapsto$ return x,
+        print(x, _) $\mapsto$ print(x, $\lambda$_ . loop)
+    } handle print(true,
+        $\lambda$_ . solve_world_hunger((), $\lambda$_ . return true))
+        \end{lstlisting}
     \end{proof}
 \end{document}
