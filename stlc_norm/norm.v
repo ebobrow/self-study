@@ -190,9 +190,8 @@ Proof.
     + move=> t' /[dup] /N_impl_norm Hnorm HN. destruct Hnorm as [v Hv].
       assert (sub_ok_in (v .: sub) (T1 .: ctx)); eauto using sub_ok_cons, N_preservation.
       * apply IHHty in H. move: H => /[dup] /N_impl_norm Hnormt HNt. destruct Hnormt as [v' Hv'].
-        -- simpl. apply N_backpreservation with (v := v').
-           ++ econstructor; eauto. asimpl => //.
-           ++ eapply N_preservation; eauto.
+        simpl. apply N_backpreservation with (v := v'); eauto using N_preservation.
+        econstructor; eauto. by asimpl.
   - simpl. intros. apply IHHty2; [|apply IHHty1]; assumption.
   - by repeat split; try exists T.
   - by repeat split; try exists F.
