@@ -1,0 +1,535 @@
+\documentclass{article}
+\usepackage{amssymb, amsmath, amsfonts, amsthm, graphicx, hyperref, stmaryrd, enumitem}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    }
+
+{\theoremstyle{definition}
+\newtheorem{problem}{Problem}[section]}
+
+\newcommand{\pf}{\rightharpoonup}
+\newcommand{\f}{\rightarrow}
+\newcommand{\ev}[1]{\Downarrow_\text{#1}}
+\newcommand{\evt}[1]{\Downarrow_\textit{#1}}
+
+\title{Denotational Semantics and Domain Theory}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent
+I am working through
+\href{https://www.cl.cam.ac.uk/teaching/1112/DenotSem/dens-notes-bw.pdf}{these
+Cambridge notes}. The problem numbers don't line up. Sue me.
+
+\section{Basics of Denotational Semantics (from Cambridge notes)}
+\begin{problem}
+    Consider the function
+    \[
+        f_{b,c} : (State \pf State) \f (State \pf State)
+    \]
+    defined on Slide 11.
+    \begin{enumerate}[label=\alph*)]
+        \item Show by induction on $n$ that
+            \[
+                f_{b,c}^n(\bot)=\lambda s\in State.\begin{cases}
+                    c^k(s) & \text{if $0\leq k <n$ is such that $b(c^i(s))=true$} \\
+                    & \text{for all $0\leq i<k$ and $b(c^k(s))=false$} \\[2ex]
+                    \text{undefined} & \text{if $b(c^i(s))=true$ for all $i\geq 0$}
+                \end{cases}
+            \]
+        \item Let $w_{b,c}:State \pf State$ be the partial function defined
+            as
+            \[
+                w_{b,c}\stackrel{\text{def}}{=} \lambda s\in
+                State.\begin{cases}
+                    c^k(s) & \text{if $k\geq 0$ is such that $b(c^i(s))=true$} \\
+                    & \text{for all $0\leq i<k$ and $b(c^k(s))=false$} \\[2ex]
+                    \text{undefined} & \text{if $b(c^i(s))=true$ for all $i\geq 0$}
+                \end{cases}
+            \]
+            Show that $w_{b,c}$ satisfies the fixed-point equation
+            \[
+                w_{b,c}=f_{b,c}(w_{b,c}).
+            \]
+        \item Describe the function $f_{b,c}$ for
+            $b=\llbracket\textbf{true}\rrbracket=\lambda s\in State.true$ and
+            $c=\llbracket \textbf{skip}\rrbracket=\lambda s\in State.s$. Which
+            partial functions from states to states are fixed points of this
+            $f_{b,c}$? What is its least fixed point (with respect to the
+            $\sqsubseteq$ ordering defined above)? Does this least fixed point
+            agree with the partial function from states to states determined by
+            the operational semantics of \textbf{while true do skip}?
+    \end{enumerate}
+\end{problem}
+\begin{proof}[Solution]
+    .
+    \begin{enumerate}[label=\alph*)]
+        \item In the base case, let $n=1$ and we have $f_{b,c}(\bot)=\lambda
+            s\in State. \textit{ if}\,(b(s),\bot,s)$. This gives us the
+            definition
+            \[
+                f_{b,c}(\bot)=\lambda s\in State.\begin{cases}
+                    \text{undefined} & \text{if $b(c^0(s))=true$} \\[2ex]
+                    c^0(s) & \text{if $0\leq k<1$ is such that $b(c^i(s))=true$} \\
+                    & \text{for all $0\leq i<k$ and $b(c^0(s))=false$}
+                \end{cases}
+            \]
+            where $g^0(s)=s$ for any function $g$. For the inductive case,
+            suppose that we have the function $f_{b,c}^n(\bot)$ as defined in
+            the problem statement and we wish to compute
+            $f_{b,c}(f_{b,c}^n(\bot))$. By the definition, we get the function
+            \[
+                f_{b,c}(f_{b,c}^n(\bot)) = \lambda s\in State. \begin{cases}
+                    f_{b,c}^n(\bot)(c(s)) & \text{if $b(s)=true$} \\
+                    s & \text{if $b(s)=false$}.
+                \end{cases}
+            \]
+            Or, unfolding the definition of $f_{b,c}^n(\bot)$,
+            \[
+                f_{b,c}(f_{b,c}^n(\bot)) = \lambda s\in State. \begin{cases}
+                    c^k(c(s)) & \text{if $b(s)=true$ and $0\leq k <n$} \\
+                    & \text{is such that $b(c^i(c(s)))=true$} \\
+                    & \text{for all $0\leq i<k$ and} \\
+                    & \text{$b(c^k(c(s)))=false$} \\[2ex]
+                    \text{undefined} & \text{if $b(s)=true$ and} \\
+                    & \text{$b(c^i(c(s)))=true$ for all $i\geq 0$} \\[2ex]
+                    c^0(s) & \text{if $b(s)=false$}
+                \end{cases}
+            \]
+            which can be massaged into the definition in the problem statement
+            by folding the additional calls to $c$ into the ranges defined in
+            the conditions and then combining the top and bottom cases.
+        \item If we expand out the function $f_{b,c}(w_{b,c})$, we get the
+            definition
+            \[
+                f_{b,c}(w_{b,c})=\lambda s\in State.\begin{cases}
+                    s & \text{if $b(c(s))=false$} \\[2ex]
+                    c^k(c(s)) & \text{if $b(s)=true$ and if $k\geq0$} \\
+                    & \text{is such that $b(c^i(c(s))=true$ for} \\
+                    & \text{all $0\leq i<k$ and $b(c^k(s))=false$} \\[2ex]
+                    \text{undefined} & \text{if $b(s)=true$ and} \\
+                    & \text{if $b(c^i(c(s))=true$ for all $i\geq 0$}
+                \end{cases}
+            \]
+            which can be massaged into the definition of $w_{b,c}$ similarly to
+            in part a). Note that this is $\lim_{n\to\infty}f^n_{b,c}(\bot)$.
+        \item If we plug $b$ and $c$ into the definition of $w_{b,c}$ above, we
+            see that the top branch never triggers because $b(c^k(s))=true$ will
+            never equal $false$. Thus, the least fixed point is $\bot$. Because
+            $\bot$ has the empty set as its graph and thus approximates any
+            function, we would expect that any function satisfies the fixpoint
+            equation. Indeed, per Slide 11,
+            \[
+            f_{\llbracket \textbf{true}\rrbracket,\llbracket
+            \textbf{skip}\rrbracket}=\textit{if}\,(true,w(s),s),
+            \]
+            so a solution to $w=f_{\llbracket \textbf{true}\rrbracket,\llbracket
+            \textbf{skip}\rrbracket}(w)$ is any function such that $w=w$.
+    \end{enumerate}
+\end{proof}
+
+\begin{problem}
+    Show that the relation $\sqsubseteq$ is a partial order with least
+    element $\bot$.
+\end{problem}
+\begin{proof}[Solution]
+    This follows trivially from the fact that $\subseteq$ is a partial order
+    with least element $\emptyset$, and that two functions are equal if their
+    graphs are equal.
+\end{proof}
+
+\begin{problem}
+    Prove that
+    \[
+        w=f_{b,c}(w) \Longrightarrow w_{b,c}\sqsubseteq w
+    \]
+    for all $w\in (State\pf State)$.
+\end{problem}
+\begin{proof}[Solution]
+    We wish to prove that, for any $s,s'\in State$, if $w_{b,c}(s)=s'$ then
+    $w(s)=s'$. From the definition of $w_{b,c}$ in Problem 1.1, we see that if
+    $w_{b,c}(s)=s'$ then $s'=c^k(s)$ for some $k\geq 0$ and $b(c^i(s))=true$ for
+    all $0\leq i<k$ and $b(c^k(s))=false$. We proceed by induction on $k$. If
+    $k=0$, then $b(s)=false$ and so $w=\textit{if}\,(false,w(c(s)),s)=c^0(s)$.
+    If $k=n+1$, we see that $w=\textit{if}\,(true,w(c(s)),s)=w(c(s))$, and by
+    the inductive hypothesis this must equal $c^n(c(s))=c^{n+1}(s)$.
+\end{proof}
+
+\section{Least Fixed Points}
+
+\begin{problem}
+    Verify the claims implicit in Slide 24: that the relation $\sqsubseteq$
+    defined there is a partial order; that $f$ is indeed the lub of the chain
+    $f_0\sqsubseteq f_1\sqsubseteq \dots$; and that the totally undefind partial
+    function is the least element.
+\end{problem}
+\begin{proof}[Solution]
+        We proved that $\sqsubseteq$ is a partial order in Problem 1.2. By
+        construction, every element of the chain $f_i\sqsubseteq f$, so $f$ is
+        clearly an upper bound of the chain. Given any other upper bound $g$,
+        the domain of $g$ must be at least the union of the domains of elements
+        $f_i$, so $f\sqsubseteq g$.
+\end{proof}
+
+\begin{problem}
+    Prove the claims in Slides 25 and 27.
+\end{problem}
+\begin{proof}[Solution]
+    Let $D$ be a cpo. First, we prove that for $d\in D,\bigsqcup_n d = d$. By
+    reflexivity, $d\sqsubseteq d$, so $d$ is an upper bound of the chain. For
+    any other upper bound $d'$, by definition we must have $d\sqsubseteq d'$, so
+    $d$ is less than all other upper bounds of the chain. Thus, $d$ is the least
+    upper bound.
+
+    \noindent
+    Next, we prove that for every chain $d_0\sqsubseteq
+    d_1\sqsubseteq\dots\sqsubseteq d_n\sqsubseteq\dots$ in $D$,
+    \[
+        \bigsqcup_i d_i=\bigsqcup_i d_{i+N}
+    \]
+    for all $N\in \mathbb{N}$. Let $d$ be $\bigsqcup_i d_i$. Every element of
+    the righthand chain is also an element of the lefthand chain because it just
+    skips the first $N$ elements, so $d$ must be an upper bound of the righthand
+    chain. For any other upper bound $d'$, we must also have that $d'$ is an
+    upper bound of the lefthand chain because $d_{i+N}\sqsubseteq d'$ for all
+    $i$, and $d_j\sqsubseteq d_N$ for all $j<N$. Thus, by the definition of a
+    least upper bound, $d\sqsubseteq d'$, so $d$ is also a least upper bound of
+    the righthand chain.
+
+    Finally, we prove that for every pair of chains $d_0\sqsubseteq
+    d_1\sqsubseteq\dots\sqsubseteq d_n\sqsubseteq\dots$ and $e_0\sqsubseteq
+    e_1\sqsubseteq\dots\sqsubseteq e_n\sqsubseteq\dots$ in $D$, if
+    $d_n\sqsubseteq e_n$ for all $n\in \mathbb{N}$ then $\bigsqcup_n
+    d_n\sqsubseteq\bigsqcup_n e_n$. First, we show that $\bigsqcup_n e_n$ is an
+    upper bound of the chain of $d$s. By transitivity of the partial order,
+    because $e_i\sqsubseteq\bigsqcup_n e_n$ and $d_i\sqsubseteq e_i$ for all
+    $i$, we have that $\bigsqcup_n e_n$ is an upper bound of the $d$ chain.
+    Then, by definition of the least upper bound, $\bigsqcup_n
+    d_n\sqsubseteq\bigsqcup_n e_n$.
+\end{proof}
+
+\begin{problem}
+    Verify the claim made in Example 2.3.9 that $f_{b,c}$ is continuous. When is
+    it strict?
+\end{problem}
+\begin{proof}[Solution]
+    First, we prove that $f_{b,c}$ is monotone. Let $w_1$ and $w_1$ be partial
+    functions $State\pf State$ such that $w_1\sqsubseteq w_2$. We wish to show
+    that $\lambda s\in State.\textit{if}\,(b(s), w_1(c(s)), s)\sqsubseteq\lambda
+    s\in State.\textit{if}\,(b(s),w_2(c(s)), s)$. This is trivial by case
+    analysis on $b(s)$. If $b(s)=true$, then the problem reduces to verifying
+    $w_1(c(s))\sqsubseteq w_2(c(s))$, which is true by our choice of $w_1$ and
+    $w_2$. If $b(s)=false$, then clearly $s\sqsubseteq s$.
+
+    Next, to show that $f_{b,c}$ is continuous it suffices to show that for each
+    chain $d_0\sqsubseteq d_1\sqsubseteq\dots$ in $D$,
+    \[
+        f_{b,c}\left(\bigsqcup_n d_n\right)\sqsubseteq\bigsqcup_n f_{b,c}(d_n).
+    \]
+    which is true if you think aabout it.
+
+    It is strict if $b(s)$ is always true.
+\end{proof}
+
+\section{Constructions on Domains}
+\begin{problem}
+    Verify that the constructions given on Slide 32, in Definition 3.2.3, and on
+    Slides 35 and 31 do give CPOs and domains. Give the proofs of Propositions
+    3.1.1 and 3.2.2.
+\end{problem}
+\begin{proof}[Solution]
+    First, we verify the construction of a product CPO. Let $D_1$ and $D_2$ be
+    CPOs and their product is the set $D_1\times D_2$ with partial order 
+    \[
+        (d_1,d_2)\sqsubseteq(d_1',d_2')
+        \stackrel{\text{def}}{\Leftrightarrow}d_1\sqsubseteq d_1' \,\&\,
+        d_2\sqsubseteq d_2'.
+    \]
+    First, we verify that this is a partial order. It is reflexive because for
+    any $(d_1,d_2)\in D_1\times D_2$, we have $d_1\sqsubseteq d_1$ and
+    $d_2\sqsubseteq d_2$ by the reflexivity of the partial orders on $D_1$ and
+    $D_2$, so $(d_1,d_2)\sqsubseteq(d_1,d_2)$. Next we verify antisymmetry. For
+    any two elements $(d_1,d_2),(d_1',d_2')\in D_1\times D_2$, if
+    $(d_1,d_2)\sqsubseteq (d_1',d_2')$ and $(d_1',d_2')\sqsubseteq (d_1,d_2)$,
+    then by definition of the partial order, $d_1\sqsubseteq d_1'$ and
+    $d_1'\sqsubseteq d_1$, so by antisymmetry of the partial order on $D_1$, we
+    must have $d_1=d_1'$. Similarly, we have $d_2=d_2'$, so
+    $(d_1,d_2)=(d_1',d_2')$. Finally, we verify transitivity. If
+    $(a_1,a_2)\sqsubseteq (b_1,b_2)$ and $(b_1,b_2)\sqsubseteq (c_1,c_2)$ then
+    by transitivity of the underlying partial orders, $a_1\sqsubseteq c_1$ and
+    $a_2\sqsubseteq c_2$; therefore, $(a_1,a_2)\sqsubseteq (c_1,c_2)$.
+
+    Next, we verify that $\bigsqcup_{n\geq 0}(d_{1,n},d_{2,n})
+    = \left(\bigsqcup_{i\geq 0}d_{1,i}, \bigsqcup_{j\geq 0}d_{2,j}\right)$. Let
+    $d_1$ and $d_2$ by te component-wise suprema. By definition of the partial
+    order, $(d_{1,n},d_{2,n})\sqsubseteq (d_1,d_2)$ for all $n\geq 0$ so it is
+    indeed an upper bound. Given any other upper bound $(d_1',d_2')$, we know by
+    the fact that $d_1$ and $d_2$ are suprema that $d_1\sqsubseteq d_1'$ and
+    $d_2\sqsubseteq d_2'$, so $(d_1,d_2)$ is the least upper bound. Thus,
+    because $D_1$ and $D_2$ are CPOs and have least upper bounds on all their
+    chains, $D_1\times D_2$ must also have a least upper bound for each of its
+    chains, constructed component-wise as above. Finally, we verify that the
+    bottom element is constructed component-wise which is like the same thing as
+    everything else so.
+
+    Next, we verify dependent products. It is again the same proof as above---by
+    induction, take one product at a time and note that it is a domain, so its
+    product with another domain is again a domain.
+
+    I'm tired of this problem.
+\end{proof}
+
+\begin{problem}
+    Let $X$ and $Y$ be sets and $X_\bot$ and $Y_\bot$ the corresponding flat
+    domains. Show that a function $f : X_\bot\rightarrow Y_\bot$ is continuous
+    if and only if one of (a) or (b) holds:
+    \begin{enumerate}[label=(\alph*)]
+        \item $f$ is strict
+        \item $f$ is constant.
+    \end{enumerate}
+\end{problem}
+\begin{proof}[Solution]
+    In the forward direction, first suppose $f$ is strict. Then if we have two
+    elements $x_1,x_2\in X_\bot$ such that $x_1\sqsubseteq x_2$, we know that
+    either $x_1=x_2$ or $x_1=\bot_X$. If $x_1=x_2$, then clearly $f(x_1)=f(x_2)$
+    so $f(x_1)\sqsubseteq f(x_2)$. If $x_1=\bot_X$, then $f(x_1)=\bot_Y$ because
+    $f$ is strict, so by the definition of a least element, $f(x_1)\sqsubseteq
+    f(x_2)$. Next, we need to prove that $f$ preserves the suprema of chains.
+    Looking at the definition of the partial order for a flat domain, we see
+    that all chains must consist of zero or more instances of $\bot$ followed by
+    zero or more instances of the same element. Because it is strict, applying
+    $f$ to the individual elements of the chain will preserve this structure,
+    thus preserving the supremum.
+
+    Otherwise, suppose $f$ is constant and maps everything to some $y\in
+    Y_\bot$. By reflexivity of the partial order, it must be monotone, and
+    similarly it must preserve suprema of chains because it maps everything to
+    $y$ and the supremum of a constaint chain $y\sqsubseteq y\sqsubseteq\dots$
+    is $y$.
+
+    In the reverse direction, suppose $f$ is continuous. Then it is monotone, so
+    $f(\bot_X)\sqsubseteq f(x)$ for all $x\in X_\bot$. By the definition of the
+    partial order, this only holds if $f(\bot_X)=\bot_Y$ ($f$ is strict) or if
+    $f(\bot_X)=f(x)$ for all $x$, which is only possible if $f$ is constant.
+\end{proof}
+
+\begin{problem}
+    Let $\{\top\}$ be a one-element set and $\{\top\}_\bot$ the corresponding
+    flat domain. Let $\Omega$ be the domain of `vertical natural numbers.' Show
+    that the function domain $\Omega\rightarrow\{\top\}_\bot$ is in bijection
+    with $\Omega$.
+\end{problem}
+\begin{proof}[Solution]
+    The underlying set of the function domain $\Omega\rightarrow\{\top\}_\bot$
+    consists of all continuous functions $\Omega\rightarrow\{\top\}_\bot$.
+    Because $\{\top\}_\bot=\{\top,\bot\}$ is a two-element set and continuous
+    functions must be monotone, we can think of these as functions that pick an
+    element of $\Omega$ and send everything above that element to $\top$ and
+    everything below to $\bot$ (hence the bijection). These functions are
+    clearly monotone, and functions that do not fit that description are clearly
+    not monotone. The only sticking point is that we are not sure whether the
+    selected element should be sent to $\top$ or $\bot$, where either selection
+    seems to leave out one function (either the constant function that maps to
+    $\bot$ or the constant function that maps to $\top$). However, I think there
+    is some subtlety with the natural numbers that I don't yet know, like we can
+    think of the spaces between numbers, of which there are contably many, so
+    the bijection is still there? It's a Hilbert's Hotel situation.
+\end{proof}
+
+\begin{problem}
+    Prove the Proposition on Slide 37.
+\end{problem}
+\begin{proof}[Solution]
+    The proposition states that for CPOs $D$, $E$, and $F$, the composision
+    function $\circ : ((E\f F)\times (D\f E))\longrightarrow (D\f F)$ defined by
+    $g\circ f = \lambda d\in D.g(f(d))$ is continuous. We first prove
+    monotonicity. For any $d_1,d_2\in D$ such that $d_1\sqsubseteq d_2$, we
+    desire that $(g\circ f)(d_1)\sqsubseteq (g\circ f)(d_2)$ for all $g\in (E\f
+    F)$ and $f\in (D\f E)$. By the continuity of $f$, we know that
+    $f(d_1)\sqsubseteq f(d_2)$, so it follows by the continuity of $g$ that
+    $g(f(d_1))\sqsubseteq g(f(d_2))$.
+
+    Next we prove that suprema of chains are preserved by the composition
+    function. For all chains $f(d_1)\sqsubseteq f(d_2)\sqsubseteq\dots\in E$,
+    \[
+        \bigsqcup_{n\geq 0}g(f(d_n)) = g(\bigsqcup_{n\geq 0}f(d_n))
+        =g (f (\bigsqcup_{n\geq 0}d_n)).
+    \]
+    Thus, the composition of two continuous functions is continuous.
+\end{proof}
+
+\section{Scott Induction}
+
+\begin{problem}
+    Answer all the ``Why?''s above in the building of chain-closed subsets.
+\end{problem}
+\begin{proof}[Solution]
+    Let $D$ be a CPO. First, we verify that the subset $\{(x,y)\in D\times D\mid
+    x\sqsubseteq y\}$ is chain-closed. For any chain
+    $(d_1,d_1')\sqsubseteq(d_2,d_2')\sqsubseteq\dots$ such that $d_n\sqsubseteq
+    d_n'$ for all $n$, we can take the component-wise suprema so that the least
+    upper bound is $(\bigsqcup_n d_n,\bigsqcup_n d_n')$. Because every element
+    of the right-projection chain is component-wise greater than the
+    left-projection, $\bigsqcup_n d_n'$ must also be an upper bound of the
+    left-projection chain. Then by the definition of least upper bound,
+    $\bigsqcup_n d_n\sqsubseteq\bigsqcup_n d_n'$, so the least upper bound is in
+    the subset.
+
+    It is a more straightforward verification that the subset $\{(x,y)\in
+    D\times D\mid x=y\}$ is chain-closed. Clearly, the component-wise least
+    upper bounds must be equal because the both projections are equal, so the
+    least upper bound is in the subset.
+
+    Next, we verify that for all continuous functions $f:D\f E$, CPOs $D$ and
+    $E$, and chain-closed subsets $S\subseteq E$,
+    \[
+        f^{-1}S=\{x\in D\mid f(x)\in S\}
+    \]
+    is a chain-closed subset of $D$. Because $S$ is chain-closed, the image of
+    the least upper bound of every chain in $f^{-1}S$ under $f$ lies in $S$.
+    Then because $f$ is continuous, it preserves least upper bounds, so the
+    reverse image of the least upper bound of the chain in $S$ must be the least
+    upper bound of the chain in $D$. Thus, it lies in the subset.
+
+    Next, let $S$ and $T$ be chain-closed subsets of the CPO $D$. We verify that
+    their union and intersection are chain-closed subsets. For the intersection,
+    this is trivial because every chain in $S\cap T$ is also a chain in $S$ and
+    $T$, so its least upper bound is in $S$ and $T$. We observe that any chain
+    in $S\cup T$ can have any elements not in $S$ removed so that it becomes a
+    chain in $S$, and likewise for $T$. The least upper bound of the former
+    chain lies in $S$, and the latter in $T$. The larger of these two least
+    upper bounds can be taken as the least upper bound of the entire chain,
+    which thus lies in $S\cup T$. Finally, we verify that the intersection of a
+    family of chain-closed subsets of $D$ is chain-closed, which follows
+    trivially from the proof that the intersection of two subsets is
+    chain-closed if you don't care about infinity.
+\end{proof}
+
+\begin{problem}
+    Give an example of a subset $S\subseteq D\times D'$ of a product CPO that is
+    not chain-closed, but which satisfies both of the following:
+    \begin{enumerate}[label=(\alph*)]
+        \item for all $d\in D$, $\{d'\mid (d,d')\in S\}$ is  a chain-closed
+            subset of $D'$; and
+        \item for all $d'\in D'$, $\{d\mid (d,d')\in S\}$ is  a chain-closed
+            subset of $D$.
+    \end{enumerate}
+\end{problem}
+\begin{proof}[Solution]
+    TODO: i dont know
+\end{proof}
+
+\section{PCF}
+\begin{problem}
+    Carry out the suggested proof of Proposition 5.4.1.
+\end{problem}
+\begin{proof}[Solution]
+    The proposition states that evaluation in PCF is deterministic: if both
+    $M\Downarrow_\tau V$ and $M\Downarrow_\tau V'$, then $V=V'$. The proof is by
+    induction on the evaluation rules. For the $\ev{val}$ case, the proposition
+    holds by reflexivity.
+
+    For $\ev{succ}$, if $\textbf{succ}(M)\evt{nat} \textbf{succ}(V)$ and
+    $\textbf{succ}(M)\evt{nat} \textbf{succ}(V')$, we have by the induction
+    hypothesis that $V=V'$. Then by functional equality,
+    $\textbf{succ}(V)=\textbf{succ}(V')$.
+
+    For $\ev{pred}$, if $\textbf{pred}(M)\evt{nat}V$ and $\textbf{pred}(M)
+    \evt{nat} V'$, we have by the induction hypothesis that $\textbf{succ}(V) =
+    \textbf{succ}(V')$. Because \textbf{succ} is injective, this implies that
+    $V=V'$.
+
+    For $\ev{zero1}$ and $\evt{zero2}$, we see by the induction hypothesis that
+    $M$ evaluates to either \textbf{0} or $\textbf{succ}(V)$ but not both, so
+    $\textbf{zero}(M)$ evaluates to either \textbf{true} or \textbf{false} but
+    not both.
+
+    Similarly for $\ev{if1}$ and $\ev{if2}$, the condition is either
+    \textbf{true} or \textbf{false} but not both, and the triggered branch is
+    deterministic, so the if statement is deterministic.
+
+    For $\beta$-reduction, we have determinism of substitution (modulo
+    $\alpha$-equivalence). Finally, $\ev{fix}$ uses determinism of
+    $\beta$-reduction and substitution.
+\end{proof}
+
+\begin{problem}
+    Recall that Church's fixpoint combinator in the untyped lambda calculus is
+    $Y\stackrel{\text{def}}{=}\lambda f.(\lambda x.f (x\,x))(\lambda
+    x.f(x\,x))$. Show that there are no PCF types $\tau_1$, $\tau_2$, $\tau_3$
+    so that the typing relation
+    \[
+        \emptyset\vdash
+        \textbf{fn}\,f:\tau_1.(\textbf{fn}\,x:\tau_2.f(x\,x))(\textbf{fn}\,x:\tau_2.f(x\,x)):\tau_3
+    \]
+    is provable from the axioms and rules in Figure 2.
+\end{problem}
+\begin{proof}[Solution]
+    Suppose for the sake of contradiction that there do exist $\tau_1$,
+    $\tau_2$, and $\tau_3$ such that the typing relation holds. By application
+    of the $:_\text{fn}$ rule, we see that $\tau_3=\tau_1\rightarrow\tau$ for
+    some $\tau$ and $f\mapsto\tau_1\vdash
+    (\textbf{fn}\,x:\tau_2.f(x\,x))(\textbf{fn}\,x:\tau_2.f(x\,x)) : \tau$.
+    Next, by the $:_\text{app}$ rule, we get that $f\mapsto\tau_1\vdash
+    \textbf{fn}\,x:\tau_2.f(x\,x):\tau_2\f\tau$ and $f\mapsto\tau_1\vdash
+    \textbf{fn}\,x:\tau_2.f(x\,x):\tau$. However, both premises use the same
+    term, so Proposition 5.3.1(i) tells us that $\tau_2\f\tau=\tau$, which is
+    impossible.
+\end{proof}
+
+\begin{problem}
+    Define the following PCF terms:
+    \begin{align*}
+        plus &\stackrel{\text{def}}{=} \textbf{fix}(\textbf{fn}\,p:nat\f(nat\f
+        nat). \textbf{fn}\,x : nat. \textbf{fn}\,y:nat. \\
+        & \quad\quad \textbf{if zero}(y) \textbf{ then }x\textbf{ else
+        succ}(p\,x\,\textbf{pred}(y))) \\[2ex]
+        times &\stackrel{\text{def}}{=} \textbf{fix}(\textbf{fn}\,t:nat\f(nat\f
+        nat). \textbf{fn}\,x : nat. \textbf{fn}\,y:nat. \\
+        & \quad\quad \textbf{if zero}(y) \textbf{ then 0 else
+        }plus(t\,x\,\textbf{pred}(y))\,x) \\[2ex]
+        fact &\stackrel{\text{def}}{=} \textbf{fix}(\textbf{fn}\,f:nat\f(nat\f
+        nat). \textbf{fn}\,x : nat. \\
+        & \quad\quad \textbf{if zero}(x) \textbf{ then succ(0) else }times\,
+        x(f\,\textbf{pred}(x))).
+    \end{align*}
+    Show by induction on $n\in \mathbb{N}$ that for all $m\in \mathbb{N}$
+    \begin{align*}
+        plus\,\textbf{succ}^m(\textbf{0})\,\textbf{succ}^n(\textbf{0})
+        &\Downarrow_{nat} \textbf{succ}^{m+n}(\textbf{0}) \\
+        times\,\textbf{succ}^m(\textbf{0})\,\textbf{succ}^n(\textbf{0})
+        &\Downarrow_{nat} \textbf{succ}^{m*n}(\textbf{0}) \\
+        fact\,\textbf{succ}^n(\textbf{0}) &\Downarrow_{nat}
+        \textbf{succ}^{n!}(\textbf{0})
+    \end{align*}
+\end{problem}
+\begin{proof}[Solution]
+    For the base case, we see that
+    \begin{align*}
+        plus\,\textbf{succ}^m(\textbf{0})\,\textbf{0} &\evt{nat} \textbf{if
+        zero}(\textbf{0})\textbf{ then }\textbf{succ}^m(\textbf{0}) \\
+        &\quad\quad \textbf{ else
+        }\textbf{succ}(plus\,\textbf{succ}^m(\textbf{0)}\,\textbf{pred}(\textbf{0}))
+        \\ &= \textbf{succ}^{m+0}(\textbf{0}),
+    \end{align*}
+    so the statement holds. For the inductive case,
+    \begin{align*}
+        plus\,\textbf{succ}^m(\textbf{0})\,\textbf{succ}^n(\textbf{0})
+        &\evt{nat} \textbf{if zero}(\textbf{succ}^n(\textbf{0)})\textbf{ then
+        }\textbf{succ}^m(\textbf{0}) \\
+        &\quad\quad \textbf{ else
+        }\textbf{succ}(plus\,\textbf{succ}^m(\textbf{0})\,\textbf{pred}(\textbf{succ}^n(\textbf{0}))
+        \\
+        &= \textbf{succ}(plus\,\textbf{succ}^m(\textbf{0})\,\textbf{succ}^{n-1}(\textbf{0})) \\
+        &= \textbf{succ}(\textbf{succ}^{m+n-1}(\textbf{0})) =
+        \textbf{succ}^{m+n}(\textbf{0}).
+    \end{align*}
+    You get the idea.
+\end{proof}
+\end{document}
