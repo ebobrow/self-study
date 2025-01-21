@@ -4,3 +4,9 @@
 *.fls
 *.log
 *.synctex.gz
+*.out
+
+*.vo
+*.vos
+*.vok
+*.glob

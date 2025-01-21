@@ -14,6 +14,7 @@
 \newcommand{\f}{\rightarrow}
 \newcommand{\ev}[1]{\Downarrow_\text{#1}}
 \newcommand{\evt}[1]{\Downarrow_\textit{#1}}
+\newcommand{\den}[1]{\llbracket #1 \rrbracket}
 
 \title{Denotational Semantics and Domain Theory}
 \author{}
@@ -531,5 +532,168 @@ Cambridge notes}. The problem numbers don't line up. Sue me.
         \textbf{succ}^{m+n}(\textbf{0}).
     \end{align*}
     You get the idea.
+\end{proof}
+
+\section{Denotational Semantics of PCF}
+\begin{problem}
+    Suppose
+    \begin{align*}
+        \Gamma &\vdash M:\tau \\
+        \Gamma[x\mapsto\tau] &\vdash M':\tau'
+    \end{align*}
+    (so that by Proposition 5.3.1(ii) we also have $\Gamma\vdash M'[M/x] :
+    \tau'$). Then for all $\rho\in\den{\Gamma}$
+    \[
+        \den{\Gamma\vdash M'[M/x]}(\rho) = \den{\Gamma[x\mapsto\tau] \vdash
+        M'}(\rho[x\mapsto\den{\Gamma\vdash M}]).
+    \]
+\end{problem}
+\begin{proof}[Solution]
+    We proceed by induction on $M'$. If $M'$ is a constant (\textbf{0},
+    \textbf{true}, or \textbf{false}), then $x$ does not appear free in $M'$, so
+    the statement holds trivially. If $M'=x$, then
+    \[
+        \den{\Gamma\vdash x[M/x]}(\rho) = \den{\Gamma\vdash M}(\rho) =
+        \den{\Gamma[x\mapsto\tau] \vdash x}(\rho[x\mapsto\den{\Gamma\vdash M}]).
+    \]
+    If $M'=\textbf{succ}(N)$, then
+    \begin{align*}
+        &\den{\Gamma\vdash \textbf{succ}(N)[M/x]}(\rho) = \den{\Gamma\vdash
+        \textbf{succ}(N[M/x])}(\rho) \\
+        &= \begin{cases}
+            \den{\Gamma\vdash N[M/x]}(\rho) + 1 & \text{if }
+            \den{\Gamma\vdash N[M/x]}(\rho) \neq\bot \\
+            \bot & \text{if }\den{\Gamma\vdash N[M/x]}(\rho) = \bot.
+        \end{cases} \\
+        &= \begin{cases}
+            \den{\Gamma[x\mapsto\tau]\vdash N}(\rho[x\mapsto\den{\Gamma\vdash
+            M}]) + 1 & \text{if } \den{\Gamma[x\mapsto\tau]\vdash
+            N}(\rho[x\mapsto\den{\Gamma\vdash M}]) \neq\bot \\
+            \bot & \text{if }\den{\Gamma[x\mapsto\tau]\vdash
+            N}(\rho[x\mapsto\den{\Gamma \vdash M}]) = \bot
+        \end{cases} \\
+        &= \den{\Gamma[x\mapsto\tau]\vdash \textbf{succ}(N)}(\rho
+        [x\mapsto\den{\Gamma\vdash M}).
+    \end{align*}
+    Using the same logic of passing the substitution into the operation, we can
+    see that the same holds for \textbf{pred}, \textbf{zero}, and \textbf{if}
+    (using the inductive hypothesis on $M_1$ so see that the same branch of the
+    if statement is triggered and then the inductive hypothesis on that branch
+    to see that they evaluate to the same thing). If $M'=M_1 M_2$,
+    \begin{align*}
+        &\den{\Gamma\vdash (M_1 M_2)[M/x]}(\rho) \\
+        &= \den{\Gamma\vdash (M_1[M/x])(M_2[M/x])}(\rho) \\
+        &= (\den{\Gamma\vdash M_1[M/x]}(\rho))(\den{\Gamma\vdash M_2[M/x]}(\rho)) \\
+        &= (\den{\Gamma[x\mapsto\tau] \vdash M_1}(\rho[x\mapsto\den{\Gamma\vdash M}]))
+        (\den{\Gamma[x\mapsto\tau] \vdash M_2}(\rho[x\mapsto\den{\Gamma\vdash M}])) \\
+        &= \den{\Gamma[x\mapsto\tau] \vdash M_1 M_2}(\rho[x\mapsto\den{\Gamma\vdash M}]).
+    \end{align*}
+    If $M'=\textbf{fn }y:\tau'.N$ where $y\neq x$ and $y\notin dom(\Gamma)$, then
+    \begin{align*}
+        &\den{\Gamma\vdash(\textbf{fn }y:\tau'.N)[M/x]}(\rho) \\
+        &= \lambda d\in\den{\tau'}.\den{\Gamma[y\mapsto\tau']\vdash
+        N[M/x]}(\rho[y\mapsto d]) \\
+        &= \lambda d\in\den{\tau'}.\den{\Gamma[y\mapsto\tau'][x\mapsto\tau]
+        \vdash N}(\rho[y\mapsto d][x\mapsto \den{\Gamma[y\mapsto\tau']\vdash
+        M}]) \\
+        &= \den{\Gamma[x\mapsto\tau]\vdash \textbf{fn }y:\tau'.N}
+        (\rho[x\mapsto\den{\Gamma\vdash M}])
+    \end{align*}
+    by the initial assumption that $y$ does not appear free in $\Gamma$ and
+    probably some theorem we have that you can remove a substitution when it
+    doesn't appear free. Finally, if $M'=\textbf{fix}(N)$,
+    \begin{align*}
+        \den{\Gamma\vdash \textbf{fix}(N)[M/x]}(\rho) &=
+        \textit{fix}(\den{\Gamma\vdash N[M/x]}(\rho)) \\
+        &= \textit{fix}(\den{\Gamma[x\mapsto\tau]\vdash N})(\rho[x\mapsto
+        \den{\Gamma\vdash M}]) \\
+        &= \den{\Gamma[x\mapsto\tau]\vdash \textbf{fix}(N)}(\rho[x\mapsto
+        \den{\Gamma\vdash M}]).
+    \end{align*}
+    Phew.
+\end{proof}
+
+\begin{problem}
+    Defining $\Omega_\tau\stackrel{\text{def}}{=}\textbf{fix(fn }x : \tau.x)$,
+    show that $\den{\Omega_\tau}$ is the least element $\bot$ of the domain
+    $\den{\tau}$. Deduce that $\den{\textbf{fn }x:\tau.\Omega_\tau} =
+    \den{\Omega_{\tau\f\tau}}$.
+\end{problem}
+\begin{proof}[Solution]
+    By unfolding definitions, we see that
+    % \begin{align*}
+    %     \den{\Omega_\tau} &= \den{\emptyset\vdash
+    %     \textbf{fix}(\textbf{fn }x:\tau\,.\,x)}(\bot) \\
+    %     &= \textit{fix}(\den{\emptyset\vdash \textbf{fn }x:\tau\,.\,x}(\bot)) \\
+    %     &= \textit{fix}(\lambda d\in\den{\tau}.\den{\emptyset[x\mapsto\tau]
+    %     \vdash x}(\bot[x\mapsto d])) \\
+    %     &= \textit{fix}(\lambda d\in\den{\tau}.d) \\
+    %     &= (\lambda d\in\den{\tau}.d)\den{\Omega_\tau} = \den{\Omega_\tau},
+    % \end{align*}
+    % so $\den{\Omega=\tau}$ is the least function that is equal to itself. This
+    % gives us the intuition that $\den{\Omega_\tau}=\bot$.
+    \[
+        \den{\Omega_\tau} = \den{\emptyset\vdash \textbf{fix}(\textbf{fn
+        }x:\tau\,.\,x)}(\bot) = \textit{fix}(\lambda d\in\den{\tau}.d).
+    \]
+    By Tarski's Fixed Point Theorem,
+    \[
+        \textit{fix}(\lambda d\in\den{\tau}.d) = \bigsqcup_{n\geq 0}(\lambda
+        d\in\den{\tau}.d)^n(\bot) = \bigsqcup_{n\geq 0}\bot = \bot.
+    \]
+    Because denotation is a congruence, we can rewrite $\den{\Omega_\tau}=\bot$
+    so that
+    \[
+        \den{\textbf{fn }x:\tau\,.\,\Omega_\tau} = \den{\emptyset\vdash \textbf{fn
+        }x:\tau\,.\,\bot}(\bot) = \lambda d\in\den{\tau}.\bot.
+    \]
+    Because it is undefined everywhere, it must be the least element of
+    $\den{\tau\f\tau}$ and thus it is $\den{\Omega_{\tau\f\tau}}$.
+\end{proof}
+
+\section{Relating Denotational and Operational Semantics}
+
+\begin{problem}
+    For any PCF type $\tau$ and any closed terms $M_1,M_2\in\text{PCF}_\tau$,
+    show that
+    \[
+        \forall V:\tau\, (M_1\Downarrow_\tau V \Leftrightarrow M_2\Downarrow_\tau V)
+        \Rightarrow M_1 \cong_\text{ctx} M_2 : \tau.
+    \]
+\end{problem}
+\begin{proof}[Solution]
+    To prove that $M_1\cong_\text{ctx}M_2 : \tau$, it suffices to show that
+    $M_1\leq_\text{ctx}M_2:\tau$ and $M_2\leq_\text{ctx}M_1:\tau$, and by the
+    Proposition on Slide 68 it suffices to show $\den{M_1} \lhd_\tau M_2$ and
+    $\den{M_2}\lhd_\tau M_1$. Both of these are discharged by applying Lemma
+    7.2.1(iii), instantiating $d_1=d_2=\den{M_1}$ and $d_1=d_2=\den{M_2}$ for
+      the second. By reflexivity, we have that $\den{M_1}\sqsubseteq\den{M_1}$
+      and by the Fundamental Property we have $\den{M_1}\lhd_\tau M_1$, and by
+      assumption we have that $M_1$ and $M_2$ evaluate to the same value.
+\end{proof}
+
+\begin{problem}
+    Use the statement in 7.1 to show that $\beta$-conversion is valid up to
+    contextual equivalence in PCF, in the sense that for all $\textbf{fn
+    }x:\tau\,.\,M_1\in\text{PCF}_{\tau\f\tau'}$ and $M_2\in\text{PCF}_\tau$
+    \[
+        (\textbf{fn }x:\tau\,.\,M_1)M_2\cong_\text{ctx} M_1[M_2/x] : \tau'.
+    \]
+\end{problem}
+\begin{proof}[Solution]
+    By the above, it suffices to show that
+    \[
+        \forall V:\tau'\,((\textbf{fn }x:\tau\,.\,M_1)M_2 \Downarrow_{\tau'} V
+        \Leftrightarrow M_1[M_2/x] \Downarrow_{\tau'} V)).
+    \]
+    We first prove the forward direction by supposing that $(\textbf{fn
+    }x:\tau\,.\,M_1)M_2 \Downarrow_{\tau'} V$. By observing our big step
+    semantics, the only rule that can apply is $\Downarrow_\text{cbn}$, giving
+    us the assumptions $\textbf{fn }x:\tau\,.\,M_1 \Downarrow_{\tau\f\tau'}
+    \textbf{fn }x:\tau\,.\,M'$ and $M'[M_2/x] \Downarrow_{\tau'} V$. Because
+    functions are already values, we see from the first assumption that
+    $M'=M_1$, so the second assumption becomes $M_1[M_2/x]\Downarrow_{\tau'} V$,
+    which is exactly what we wished to prove. In the reverse direction, the
+    exact same logic applies, allowing us to apply the $\ev{cbn}$ rule.
 \end{proof}
 \end{document}
